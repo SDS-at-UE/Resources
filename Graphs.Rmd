@@ -1,0 +1,1389 @@
+---
+title: "Graphs"
+author: "Tyler Clark"
+date: "12/15/2019"
+output: word_document
+---
+
+```{r}
+library(tidyverse)
+library(ggthemes)
+library(ggrepel)
+library(tidyquant)
+library(scales)
+library(lubridate)
+# library(xlsx)
+library(glue)
+```
+
+
+LPX Orange is #f36e21
+    Blue is #005581
+
+
+```{r}
+lpx <- data.frame(year = c(2009:2018),
+                  sales = c(1054.7, 1383.6, 1356.9, 1715.8, 2085.2, 1934.8, 1892.5, 2233.4, 2733.9, 2828))
+lpx <- lpx %>% 
+  mutate(growth = round((lpx$sales - lag(lpx$sales)) / lag(lpx$sales),
+                        digits = 3),
+         positive = as.factor(if_else(growth > 0, "green", "red")),
+         percent_g = str_c(as.character(growth*100), "%"))
+
+```
+
+
+Original Revenue, no predictions
+
+```{r}
+ggplot(lpx) + 
+  geom_line(aes(year, sales), 
+            color = "#f36e21", 
+            size = 2) +
+  geom_point(aes(year, sales), 
+             color = "#005581", 
+             size = 3) +
+  ggtitle("Figure 1: Revenue") +
+  xlab("Source: LPX") +
+  ylab("Revenue ($ mil)") +
+  scale_x_continuous(breaks = c(2009:2018)) +
+  scale_y_continuous(limits = c(1000,3000),
+                     breaks = c(1000,1250,1500,1750,2000,2250,2500,2750,3000)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 17, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_text(hjust = 0,
+                                    face = "italic"),
+        axis.text.x = element_text(size = 12,
+                                   face = "bold"),
+        axis.text.y = element_text(size = 12,
+                                   face = "bold"),
+        panel.grid.minor = element_blank())
+
+```
+
+
+Attempting to show growth as line
+
+```{r}
+ggplot(lpx) +
+  geom_col(aes(year, sales)) +
+  geom_line(aes(year, growth* 1000 + 1000), size = 2, color = "red")
+```
+
+
+
+Growth as text
+
+```{r}
+# Blue line & title
+# Colored dots, black growth text
+ggplot(lpx) +
+  geom_line(aes(year, sales), 
+            color = "#005581", 
+            size = 2) +
+  geom_point(aes(x = year, y = sales, color = positive), 
+             # color = "#005581", 
+             size = 4,
+             show.legend = FALSE
+             ) +
+  geom_label(aes(x = year, 
+  # geom_text(aes(x = year, # Gets rid of boxes
+                 y = sales, 
+                 label = growth, 
+                 # color = positive
+  ),
+             vjust = -1,
+             show.legend = FALSE) +
+  scale_color_manual(values = c("green","red")) +
+  ggtitle("Figure 1: Revenue ($ mil)") +
+  xlab("Source: LPX") +
+  ylab("Revenue ($ mil)") +
+  scale_x_continuous(breaks = c(2009:2018)) +
+  scale_y_continuous(limits = c(1000,3000),
+                     breaks = c(1000,1250,1500,1750,2000,2250,2500,2750,3000)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 17, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_text(hjust = 0,
+                                    face = "italic"),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 12,
+                                   face = "bold"),
+        axis.text.y = element_text(size = 12,
+                                   face = "bold"),
+        panel.grid.minor = element_blank())
+
+
+
+# Blue title, blue line
+# orange dots, colored text
+
+ggplot(lpx) +
+  geom_line(aes(year, sales), 
+            color = "#005581", 
+            size = 2) +
+  geom_point(aes(x = year, y = sales, color = positive), 
+             color = "#f36e21",
+             size = 3,
+             show.legend = FALSE
+             ) +
+  geom_label(aes(x = year, 
+  # geom_text(aes(x = year, # Gets rid of boxes
+                 y = sales, 
+                 label = growth, 
+                 color = positive
+  ),
+             vjust = -1,
+             show.legend = FALSE) +
+  scale_color_manual(values = c("springgreen4","red")) +
+  ggtitle("Figure 1: Revenue ($ mil)") +
+   xlab("Source: LPX") +
+  ylab("Revenue ($ mil)") +
+  scale_x_continuous(breaks = c(2009:2018)) +
+  scale_y_continuous(limits = c(1000,3000),
+                     breaks = c(1000,1250,1500,1750,2000,2250,2500,2750,3000)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 17, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_text(hjust = 0,
+                                    face = "italic"),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 12,
+                                   face = "bold"),
+        axis.text.y = element_text(size = 12,
+                                   face = "bold"),
+        panel.grid.minor = element_blank())
+
+ggplot(lpx) +
+  geom_line(aes(year, sales), 
+            color = "#005581", 
+            size = 2) +
+  geom_point(aes(x = year, y = sales, color = positive), 
+             color = "#f36e21",
+             size = 3,
+             show.legend = FALSE
+             ) +
+  geom_label(aes(x = year, 
+  # geom_text(aes(x = year, # Gets rid of boxes
+                 y = sales, 
+                 label = percent_g, 
+                 color = positive
+  ),
+             vjust = -1,
+             show.legend = FALSE) +
+  scale_color_manual(values = c("springgreen4","red")) +
+  ggtitle("Figure 1: Revenue ($ mil)") +
+   xlab("Source: LPX") +
+  ylab("Revenue ($ mil)") +
+  scale_x_continuous(breaks = c(2009:2018)) +
+  scale_y_continuous(limits = c(1000,3000),
+                     breaks = c(1000,1250,1500,1750,2000,2250,2500,2750,3000)) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 17, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_text(hjust = 0,
+                                    face = "italic"),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 12,
+                                   face = "bold"),
+        axis.text.y = element_text(size = 12,
+                                   face = "bold"),
+        panel.grid.minor = element_blank())
+
+```
+
+
+
+Columns instead of lines
+
+```{r}
+ggplot(lpx) +
+  geom_col(aes(year, sales),  # X and Y axis
+           fill = "#f36e21",  # Fill inside of each bar, which is LPX Orange
+           color = "#005581", # Outline of each bar, which is LPX Blue
+           size = 1) +        # Size of outline 
+  geom_label(aes(x = year,    # X axis placement of label
+  # geom_text(aes(x = year,   # Set to not run, but would get rid of boxes, leaves only the text
+                 y = sales,   # Y axis placement of label
+                 label = growth,    # Specify text in label
+                 color = positive), # Makes the label different colors
+             vjust = -.25,          # Vertical Adjust, Move label up slightly so there is no overlap
+             show.legend = FALSE) + # Don't show the legend for the colors
+  scale_color_manual(values = c("springgreen4","red")) + # Manually change color of labels to be more readable
+  ggtitle("Figure 1: Revenue ($ mil)") + # Set the title of the graph
+  xlab("Source: LPX") +                  # X axis title
+  ylab("Revenue ($ mil)") +              # Y axis title
+  scale_x_continuous(breaks = c(2009:2018)) + # X axis ticks(years), otherwise only labels every 2-3 years
+  scale_y_continuous(limits = c(0,3000),      # Y axis shows 0-3000 to have room for highest labels
+                     breaks = c(0,500,1000,1500,2000,2500,3000)) + # Y axis ticks(amount), otherwise only labels 1500, 2000, 2500
+  theme_minimal() +                                   # Light colored background
+  theme(plot.title = element_text(size = 17,          # Make the title bigger
+                                  hjust = .5,         # Center the title
+                                  face = "bold",      # Bold the title
+                                  color = "#005581"), # Make title LPX blue
+        axis.title.x = element_text(hjust = 0,        # Make X axis title left aligned
+                                    face = "italic"), # Italicize "Source: LPX"
+        axis.title.y = element_blank(),               # Get rid of Y axis title because it is repetitive and these will end up being very small graphs
+        axis.text.x = element_text(size = 12,         # Make X axis ticks bigger
+                                   face = "bold"),    # Bold the X axis years to make more readable
+        axis.text.y = element_text(size = 12,         # Make Y axis ticks bigger
+                                   face = "bold"),    # Bold Y axis ticks(amount) to make more readable
+        panel.grid.minor = element_blank()            # Remove background lines that do not correspond to a tick. Otherwise would have another line in betweeen each.
+        )
+```
+
+
+
+REAL GRAPHS BELOW
+
+Load from OneDrive, get rid of a few empty columns
+
+```{r}
+# LPX <- t(IS_BS_CF) %>% data.frame()
+# LPX <- LPX[,-c(4,9,10,15,20,24,26,27,31,35)]
+```
+
+
+A. Revenue
+
+```{r}
+lpx <- data.frame(Revenue = c(1892.5, 2233.4, 2733.9, 2828,
+                              2613.35, 2795.35, 2977.35, 3159.35, 3341.35),
+                  Year = c(2015:2023))
+
+lpx <- lpx %>% mutate(growth = round((lpx$Revenue - lag(lpx$Revenue)) / lag(lpx$Revenue),
+                                     digits = 3) * 100,
+                      positive = as.factor(if_else(growth > 0, "green", "red")))
+lpx <- lpx %>% mutate(growth_s = str_c(as.character(growth), "%"))
+lpx <- lpx[-1,] # Get rid of 2015
+
+
+ggplot(lpx) +
+  geom_line(aes(Year, Revenue), 
+            color = "#005581", 
+            size = 2.5) +
+  geom_point(aes(x = Year, y = Revenue, color = positive), 
+             color = "#f36e21",
+             size = 4,
+             show.legend = FALSE
+             ) +
+  geom_label(aes(x = Year, 
+                 y = Revenue, 
+                 label = growth_s, 
+                 color = positive),
+             size = 6,
+             vjust = 0,
+             nudge_y = 90,
+             show.legend = FALSE) +
+  scale_color_manual(values = c("springgreen4","red")) +
+  ggtitle("Figure 11: Revenue") +
+  labs(caption = "Source: LPX, Team Assessment") +
+  ylab("Millions $") +
+  scale_x_continuous(breaks = c(2016:2023)) +
+  scale_y_continuous(limits = c(2200,3600),
+                     breaks = seq(from = 2000, to = 3500, by = 250)) +
+  theme_economist_white() +
+  # theme_stata() +
+  theme(plot.title = element_text(size = 25, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 18,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold"),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.25,
+                                    vjust = .1,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold")
+        )
+
+# ggsave("Graphs/Revenue.png", dpi = 1000)
+```
+
+
+B. Gross vs. Operating vs. Net
+
+```{r}
+lpx <- lpx %>% mutate(Gross = c(404.3, 735.8, 744,        
+                                687.53, 735.41, 783.29, 831.17, 879.06),
+                      Gross_P = c(22.1, 26.91, 26.31,
+                                  26.31, 26.31, 26.31, 26.31, 26.31),
+                      Operating_Income = c(210.2, 532.8, 526.1,
+                                           486.17, 520.03, 553.88, 587.74, 621.6),
+                      Operating_Income_P = c(9.41, 19.49, 18.6,
+                                             18.6, 18.6, 18.6, 18.6, 18.6),
+                      Net_Income = c(149.8, 389.8, 394.6,
+                                     378.13, 399.44, 419.33, 437.61, 454.1),
+                      Net_Income_P = c(6.71, 14.26, 13.95,
+                                       14.47, 14.29, 14.08, 13.85, 13.59)
+                      )
+Margin <- NA
+Year <- NA
+for(i in 1:nrow(lpx)) {
+  Margin <- c(Margin, lpx$Gross_P[i], lpx$Operating_Income_P[i], lpx$Net_Income_P[i])
+  Year <- c(Year, rep(lpx$Year[i],3))
+}
+Margin <- na.omit(Margin)
+Year <- na.omit(Year)
+
+lpx_b <- data.frame(Margin,
+                    margin_type = rep(c("Gross","Operating","Net"), 8),
+                    Year)
+
+lpx_b <- lpx_b %>% mutate(Margin = Margin / 100)
+
+lpx_b <- lpx_b %>% filter(Year <= 2020)
+
+ggplot(lpx_b) + 
+  geom_col(aes(x = Year,
+               y = Margin,
+               fill = as.factor(margin_type)),
+           position = "dodge",
+           stat = "identity",
+           width = .7)  +
+  ggtitle("Figure 12: Gross, Operating and Net Margins") +
+  labs(caption = "Source: LPX, Team Assessment") +
+  scale_x_continuous(breaks = c(2016:2023)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                     breaks = c(0,.05,.1,.15,.2,.25,.3)) +
+  scale_fill_manual(values = c("#f36e21","#005581","#a3039c"), 
+                    labels = c("Gross Margin", "Operating Margin", "Net Margin")) +
+  theme_economist_white() +
+  # theme_stata() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .6, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold"),
+        plot.caption = element_text(size = 18, 
+                                    hjust = -.2,
+                                    vjust = .1,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        legend.spacing.x = unit(.4, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 17)
+        )
+
+# ggsave("Graphs/Gross_Operating_Net.png", dpi = 1000)
+```
+
+
+C. a) Revenue Segment donut graph
+
+```{r}
+Segment <- data.frame(Segment = c(942.3,160.8,1305.2,390.9,28.8),
+                      Name = c("Siding", "SA", "OSB", "EWP", "Other"))
+
+Segment <- Segment %>% mutate(fraction = Segment / sum(Segment))
+Segment$ymax <- cumsum(Segment$fraction)
+Segment$ymin <-  c(0, head(Segment$ymax, n=-1))
+Segment$labelPosition <- (Segment$ymax + Segment$ymin) / 2
+Segment$label <- paste0(Segment$Name, "\n value: ", Segment$Segment)
+
+ggplot(Segment, aes(ymax = ymax,
+                    ymin = ymin,
+                    xmax = 4,
+                    xmin = 2,
+                    fill = Name)) +
+  geom_rect() +
+  # geom_label(x = 2,
+  #           aes(y = labelPosition,
+  #                label = label,
+  #                color = Name),
+  #           size = 4) +
+  ####### DONT TOUCH THESE. IT ONLY GETS WORSE. 2.4, 2.6, 2.5, 2.5, 2.9
+  geom_text_repel(aes(x = case_when(Name == "SA" ~ 2.4,
+                                    Name == "Siding" ~ 2.6,
+                                    Name == "Other" ~ 2.5,
+                                    Name == "EWP" ~ 2.5,
+                                    Name == "OSB" ~ 2.9,
+                                    TRUE ~ 2),
+                      y = labelPosition,
+                      label = Name,
+                      size = 12,
+                      fontface = "bold")) +
+  scale_fill_brewer(palette = 5) +
+  # scale_color_brewer(palette = 5) +
+  coord_polar(theta="y") +
+  xlim(c(1, 4)) +
+  theme_void() +
+  ggtitle("Figure 3: Business Segments") +
+  labs(caption = "Source: LPX") +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 17, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        # axis.title.x = element_blank(),
+        # axis.title.y = element_blank(),
+        # axis.text.x = element_text(size = 12,
+        #                            face = "bold"),
+        plot.caption = element_text(size = 12, 
+                                    hjust = 0,
+                                    face = "italic")
+        )
+
+
+
+Segment <- data.frame(Segment = c(942.3,160.8,1305.2,28.8,390.9),
+                      Name = c("Siding", "SA", "OSB", "Other", "EWP"))
+
+Segment <- Segment %>% mutate(fraction = Segment / sum(Segment))
+Segment$ymax <- cumsum(Segment$fraction)
+Segment$ymin <-  c(0, head(Segment$ymax, n=-1))
+Segment$labelPosition <- (Segment$ymax + Segment$ymin) / 2
+Segment$label <- paste0(Segment$Name, "\n value: ", Segment$Segment)
+
+ggplot(Segment, aes(ymax = ymax,
+                    ymin = ymin,
+                    xmax = 4,
+                    xmin = 3.5,
+                    fill = Name)) +
+  geom_rect() +
+  # geom_label(x = 2,
+  #           aes(y = labelPosition,
+  #                label = label,
+  #                color = Name),
+  #           size = 4) +
+  ####### DONT TOUCH THESE. IT ONLY GETS WORSE. 2.4, 2.6, 2.5, 2.5, 2.9
+  geom_text_repel(aes(x = case_when(Name == "SA" ~ 3,
+                                    Name == "Siding" ~ 2.8,
+                                    Name == "Other" ~ 2.86,
+                                    Name == "EWP" ~ 3.09,
+                                    Name == "OSB" ~ 2.84,
+                                    TRUE ~ 2),
+                      y = labelPosition,
+                      label = Name,
+                      size = 12,
+                      fontface = "bold")) +
+  scale_fill_brewer(palette = 5) +
+  # scale_color_brewer(palette = 5) +
+  coord_polar(theta="y") +
+  xlim(c(1, 4)) +
+  theme_void() +
+  ggtitle("Business Segments") +
+  labs(caption = "Source: LPX") +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        # axis.title.x = element_blank(),
+        # axis.title.y = element_blank(),
+        # axis.text.x = element_text(size = 12,
+        #                            face = "bold"),
+        plot.caption = element_text(size = 18, 
+                                    hjust = 0,
+                                    face = "italic")
+        )
+
+# ggsave("Graphs/Donut.png", dpi = 1000)
+```
+
+
+C. b) Revenue Segment bar graph yearly
+
+```{r}
+Segment_bar <- data.frame(Year = c(rep(2018, 5), rep(2017, 5), rep(2016, 5), rep(2015, 5)),
+                          Segment = rep(c("Siding", "OSB", "EWP", "SA", "Other"), 4),
+                          Revenue = c(942.3, 1305.2, 390.9, 160.8, 28.9, 
+                                      884.0, 1302.5, 365.9, 155.3, 30.0,
+                                      752.3, 1027.7, 296.9, 136.9, 26.9,
+                                      636.4, 807.5, 286.1, 134.9, 29.0))
+
+Segment_bar$Segment <- reorder(Segment_bar$Segment, Segment_bar$Revenue, FUN = mean) 
+
+ggplot(Segment_bar) +
+  geom_col(aes(x = Year, y = Revenue, fill = Segment)) +
+  ggtitle("Revenue by Business Segment") +
+  labs(caption = "Source: LPX") +
+  scale_y_continuous(limits = c(0, 3000),
+                     breaks = c(0, 1000, 2000, 3000)) +
+  scale_fill_manual(values = c("#5dade2", "#2ecc71", "#a3039c", "#005581", "#f36e21")) +
+                               #Other      SA         EWP        Siding     OSB
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold"),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.1,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 17)
+        )
+
+# ggsave("Graphs/Revenue_by_Segment.png", dpi = 1000)
+```
+
+
+
+D. Year to date stock price
+Find a stock you want to use for a candlestick graph from NASDAQ and load it in here
+```{r}
+# stock <- read.csv("HistoricalQuotes.csv", stringsAsFactors = FALSE)
+# stock <- stock %>% mutate(Close = as.numeric(str_extract(Close.Last, "[0-9]+.[0-9]+")),
+#                           Open = as.numeric(str_extract(Open, "[0-9]+.[0-9]+")),
+#                           High = as.numeric(str_extract(High, "[0-9]+.[0-9]+")),
+#                           Low = as.numeric(str_extract(Low, "[0-9]+.[0-9]+")),
+#                           Date = mdy(Date))
+# stock <- stock %>% mutate(diff = Close - Open,
+#                           diff_positve = if_else(diff > 0, 1, 0))
+
+
+# ggplot(stock) + 
+#   geom_point(aes(Date, Volume))
+# 
+# ggplot(stock) + 
+#   geom_point(aes(Date, Open)) +
+#   geom_point(aes(Date, Close))
+# 
+# ggplot(stock) +
+#   geom_candlestick(aes(x = Date,
+#                        y = Close,
+#                        open = Open,
+#                        high = High, 
+#                        close = Close,
+#                        low = Low),
+#                    colour_up = "green",
+#                    colour_down = "red",
+#                    fill_up = "green",
+#                    fill_down = "red") +
+#   ggtitle("Figure 13: YTD Stock Price") +
+#   labs(caption = "Source: NASDAQ") + 
+#   scale_y_continuous(breaks = c(seq(from = 24, to = 33, by = 3)),
+#                      labels = scales::dollar) +
+#   scale_x_date(date_breaks = "1 months", 
+#                date_labels = "%B") +
+#   theme_economist_white() +
+#   theme(plot.title = element_text(size = 22, 
+#                                   hjust = .5, 
+#                                   face = "bold",
+#                                   color = "#005581"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text.x = element_text(size = 18,
+#                                    face = "bold",
+#                                    angle = 45,
+#                                    vjust = .9,
+#                                    hjust = .9),
+#         plot.caption = element_text(size = 17, 
+#                                     hjust = -.08,
+#                                     face = "italic"),
+#         axis.text.y = element_text(size = 17,
+#                                    face = "bold")
+#         )
+
+# ggsave("Graphs/YTD_Stock_Price.png", dpi = 1000)
+```
+
+
+E. 2019 Q3 Competitors P/E Ratio Comparison
+
+```{r}
+Competitors <- data.frame(Company = c("LPX", "Weyerhaeuser", "Potlatch", "West Fraser", "Norbord"),
+                          Price =   c(24.58,  27.70,         41.09,      53,            23.95),
+                          EPS =     c(.48,    -.21,          .68,        -1.31,         -0.68),
+                          PE =      c(51.21,  0.00,          60.42,      0,             0.00),
+                          SPS =     c(18.15,  8.87,          12.72,      72.12,         22.34),
+                          PS =      c(1.35,   3.12,          3.23,       .735,          1.07),
+                          BVPS =    c(10.33,  11.54,         18.38,      37.59,         8.58),
+                          PB =      c(2.38,   2.40,          2.23,       1.41,          2.79),
+                          FCFPS =   c(0.18,   1.71,          3.87,       -4.62,         -0.17),
+                          PFCF =    c(135.43, 16.22,         10.62,      11.96,         0.00))
+
+Comp <- data.frame(Company = c(rep(as.character(Competitors$Company[1]), 9), 
+                               rep(as.character(Competitors$Company[2]), 9), 
+                               rep(as.character(Competitors$Company[3]), 9), 
+                               rep(as.character(Competitors$Company[4]), 9),
+                               rep(as.character(Competitors$Company[5]), 9)),
+                   Statistic = rep(colnames(Competitors[,2:10]), 5),
+                   Value = c(as.vector(unlist(Competitors[1,2:10])), 
+                             as.vector(unlist(Competitors[2,2:10])), 
+                             as.vector(unlist(Competitors[3,2:10])), 
+                             as.vector(unlist(Competitors[4,2:10])), 
+                             as.vector(unlist(Competitors[5,2:10]))))
+
+Comp$Company <- factor(Comp$Company, levels = c("LPX", "Potlatch", "West Fraser", "Weyerhaeuser", "Norbord"))
+
+Comp <- Comp %>% mutate(Value = round(Comp$Value, digits = 2))
+
+ggplot(Comp) + 
+  geom_col(aes(x = Company,
+               y = Value,
+               fill = as.factor(Statistic)),
+           position = "dodge",
+           stat = "identity",
+           width = .7)
+
+
+
+Comp_A <- Comp %>% filter(Statistic %in% c("PE", "PS", "PB", "PFCF"))
+ggplot(Comp_A) + 
+  geom_col(aes(x = Company,
+               y = Value,
+               fill = as.factor(Statistic)),
+           position = "dodge",
+           # stat = "identity",
+           width = .8) +
+  ggtitle("2018 Industry Comparison Ratios") +
+  labs(caption = "Source: Macrotrends, YCharts") + 
+  scale_y_continuous(limits = c(0,140),
+                     breaks = c(seq(from = 0, to = 140, by = 20))) +
+  scale_fill_manual(values = c("#a3039c", "#005581", "#f36e21", "#2ecc71")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        plot.background = element_rect(size = c(500,300)),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold",
+                                   angle = 20,
+                                   vjust = .9,
+                                   hjust = .9),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.15,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 17,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = c(.6, .77),
+        legend.direction = "horizontal",
+        legend.background = element_rect(fill = NA),
+        legend.text = element_text(size = 17)
+        )
+
+# ggsave("Graphs/Industry_Ratios.png", dpi = 1000)
+
+Comp_B <- Comp %>% filter(Statistic %in% c("EPS", "SPS", "BVPS", "FCFPS"))
+Comp_B$Company <- factor(Comp_B$Company, levels = c("LPX", "Norbord", "West Fraser", "Potlatch", "Weyerhaeuser"))
+Comp_B$Statistic <- factor(Comp_B$Statistic, levels = c("BVPS", "SPS", "FCFPS", "EPS"))
+ggplot(Comp_B) + 
+  geom_col(aes(x = Company,
+               y = Value,
+               fill = as.factor(Statistic)),
+           position = "dodge",
+           stat = "identity",
+           width = .8) +
+  ggtitle("2018 Per-Share Competitor Ratios") +
+  labs(caption = "Source: Macrotrends, YCharts") +
+  scale_y_continuous(limits = c(-5, 73), 
+                    breaks = c(seq(from = 0, to = 70, by = 10))) +
+  scale_fill_manual(values = c("#005581", "#f36e21", "#a3039c", "#2ecc71")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        plot.background = element_rect(size = c(1,1)),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold",
+                                   angle = 20,
+                                   hjust = 1,
+                                   vjust = 1),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.1,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        # legend.spacing.x = unit(.5, "cm"),
+        # legend.spacing.y = unit(.6, "cm"),
+        legend.key.size = unit(.9, "cm"),
+        legend.position = c(.15,.7),
+        legend.direction = "vertical",
+        legend.text = element_text(size = 17),
+        legend.background = element_rect(fill = "white")
+        )
+
+# ggsave("Graphs/Industry_Per_Share_Ratios.png", dpi = 1000)
+```
+
+
+F. Siding Segment Revenue by Quarter
+
+```{r}
+SS <- data.frame(Quarter = c("'19 Q3", "'19 Q2", "'19 Q1", "'18 Q4", "'18 Q3", "'18 Q2", "'18 Q1"),
+                 SS_Strand = c(213, 200, 187, 178, 188, 194, 165),
+                 SS_Fiber = c(28, 25, 26, 22, 30, 28, 26),
+                 CanExel = c(15, 7, 17, 3, 7, 13, 14)) %>% 
+  mutate(SS_Siding = SS_Strand + SS_Fiber)
+
+SS_A <- data.frame(Quarter = rep(SS$Quarter, 2),
+                   SmartSiding = c(SS$SS_Strand, SS$SS_Fiber),
+                   Type = c(rep("Strand", 7), rep("Fiber", 7)))
+
+ggplot(SS) +
+  geom_point(aes(x = Quarter, y = SS_Strand)) +
+  geom_point(aes(x = Quarter, y = SS_Fiber)) +
+  geom_point(aes(x = Quarter, y = CanExel)) +
+  geom_point(aes(x = Quarter, y = SS_Siding))
+
+ggplot(SS) + 
+  geom_col(aes(x = Quarter, y = SS_Siding))
+
+
+# library(scales) # must have for oob = rescale_none
+ggplot(SS_A) + 
+  geom_col(aes(x = Quarter, y = SmartSiding, fill = Type)) +
+  ggtitle("Revenue From SmartSiding") +
+  labs(caption = "Source: LPX") +
+  scale_fill_manual(values = c("#f36e21", "#005581")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 18,
+                                   face = "bold"),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.1,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold"),
+        legend.title = element_text(size = 17,
+                                    face = "bold",
+                                    vjust = 1),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 17),
+        # legend.box.background = element_rect(fill = "white")
+        legend.background = element_rect(fill = "white")
+        )
+
+# ggsave("Graphs/Revenue_SmartSiding.png", dpi = 1000)
+```
+
+
+G. Single-Family Housing Starts Quarterly, Freddie Mac Predictions
+
+Explanation of different housing types from US Census Bureau
+https://www.census.gov/construction/nrc/nrcdatarelationships.html 
+
+```{r}
+Housing_Starts <- data.frame(Single_Family = c(0.89, 0.89, 0.88, 0.83,
+                                               0.86, 0.84, 0.88, 0.89,
+                                               0.90, 0.93, 0.96, 0.98), # Millions of housing units;
+                                                                        # quarterly averages of monthly, seasonally-adjusted levels (reported at an annual rate).
+                             Multifamily = c(0.43, 0.37, 0.36, 0.36,
+                                             0.35, 0.42, 0.38, 0.38,
+                                             0.37, 0.35, 0.32, 0.31),
+                             Quarter = c("'18 Q1", "'18 Q2", "'18 Q3", "'18 Q4",
+                                         "'19 Q1", "'19 Q2", "'19 Q3", "'19 Q4",
+                                         "'20 Q1", "'20 Q2", "'20 Q3", "'20 Q4"))
+
+ggplot(Housing_Starts) +
+  geom_line(aes(x = Quarter, y = Single_Family, group = 1),
+            color = "#005581",
+            size = 2.5) +
+  geom_point(aes(x = Quarter, y = Single_Family),
+             color = "#f36e21",
+             size = 4) +
+  ggtitle("Single-Family Housing Starts") +
+  ylab("Millions of Homes") +
+  labs(caption = "Source: Freddie Mac") +
+  scale_y_continuous(limits = c(.82, 1),
+                     breaks = c(.85, .9, .95, 1)) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 18,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.text.x = element_text(size = 14,
+                                   face = "bold",
+                                   angle = 50,
+                                   vjust = 1.1,
+                                   hjust = 1),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.2,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 14,
+                                   face = "bold"),
+        legend.title = element_text(size = 14,
+                                    face = "bold"),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "none"
+        )
+
+# ggsave("Graphs/Single_Family_Starts.png", dpi = 1000)
+```
+
+
+H. Multifamily Housing Starts Quarterly, Freddie Mac Predictions
+
+Notice the decrease in Multifamily. Following explanation from https://www.investopedia.com/terms/h/housingstarts.asp
+"For example, if housing starts show a decline in new single-family units in favor of multifamily housing starts, it could indicate that a supply shortage is looming for single-family housing. That may lead to price increases for that segment, making those units more of a premium. It could also indicate that the general public is shying away from more expensive homes in favor of seeking more affordable multifamily units."
+
+```{r}
+ggplot(Housing_Starts) +
+  geom_line(aes(x = Quarter, y = Multifamily, group = 1),
+            color = "#005581",
+            size = 2.5) +
+  geom_point(aes(x = Quarter, y = Multifamily),
+             color = "#f36e21",
+             size = 4) +
+  ggtitle("Figure 6: Multifamily Housing Starts") +
+  ylab("Millions of Homes") +
+  labs(caption = "Source: Freddie Mac") +
+  scale_y_continuous(limits = c(.3, .45),
+                     breaks = c(seq(from = .3, to = .45, by = .05))) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 18,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.text.x = element_text(size = 14,
+                                   face = "bold",
+                                   angle = 50,
+                                   vjust = 1.1,
+                                   hjust = 1),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.2,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 14,
+                                   face = "bold"),
+        legend.title = element_text(size = 14,
+                                    face = "bold"),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "none"
+        )
+
+# ggsave("Graphs/Multifamily_Starts.png", dpi = 1000)
+```
+
+
+I. Single and Multi family starts Quarterly
+
+```{r}
+FM <- data.frame(Quarter = rep(Housing_Starts$Quarter, 2),
+                 Starts = c(Housing_Starts$Single_Family, Housing_Starts$Multifamily),
+                 Type = c(rep("Single-Family", 12), rep("Multifamily", 12)))
+
+Housing_Starts %>% mutate(Total = Single_Family + Multifamily,
+                          diff = Single_Family - Multifamily)
+
+ggplot(FM) +
+  geom_col(aes(x = Quarter, y = Starts, fill = Type)) +
+  ggtitle("Figure 10: Forecasted Housing Starts") +
+  ylab("Housing Starts (Millions)") +
+  labs(caption = "Source: Freddie Mac")
+```
+
+
+J. Freddie Mac single multi family housing starts difference quarterly and annually
+
+```{r}
+HS_Difference <- Housing_Starts %>% mutate(Total = Single_Family + Multifamily,
+                                           diff = Single_Family - Multifamily)
+
+ggplot(HS_Difference) +
+  geom_col(aes(x = Quarter, y = diff))
+
+ggplot(HS_Difference) +
+  geom_point(aes(x = Quarter, y = Single_Family)) +
+  geom_point(aes(x = Quarter, y = Multifamily))
+
+HS_Difference <- HS_Difference %>% mutate(growth = if_else(diff > lag(HS_Difference$diff), "springgreen4", "red")) %>% filter(Quarter != "'18 Q1")
+
+ggplot(HS_Difference) + 
+  geom_segment(aes(x = Quarter, xend = Quarter, 
+                   y = Multifamily, yend = Single_Family,
+                   color = growth),
+               alpha = .7,
+               size = 5) +
+  scale_color_manual(values = c("#e74c3c", "springgreen4")) +
+  geom_point(aes(x = Quarter, y = Single_Family),
+             size = 4.5,
+             color = "#005581") +
+  geom_point(aes(x = Quarter, y = Multifamily),
+             size = 4.5,
+             color = "#005581") +
+  ggtitle("Figure 5: Difference Between Single, \nMultifamily Housing Starts") +
+  ylab("Millions") +
+  labs(caption = "Source: Freddie Mac") +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 20, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 15,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.text.x = element_text(size = 14,
+                                   face = "bold",
+                                   angle = 50,
+                                   vjust = 1.1,
+                                   hjust = 1),
+        plot.caption = element_text(size = 14, 
+                                    hjust = -.15,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 14,
+                                   face = "bold"),
+        legend.title = element_text(size = 14,
+                                    face = "bold"),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "none"
+        )
+
+# ggsave("Graphs/FM_Single_Multi.png", dpi = 1000)
+
+Annual <- data.frame(Year = c(2017:2020),
+                     Single_Family = c(0.85, 0.87, 0.87, 0.94),
+                     Multifamily = c(0.35, 0.38, 0.38, 0.34))
+
+Annual <- Annual %>% mutate(Total = Single_Family + Multifamily,
+                            Difference = Single_Family - Multifamily)
+
+Annual_A <- data.frame(Year = rep(Annual$Year, 2),
+                       Starts = c(Annual$Single_Family, Annual$Multifamily),
+                       Type = c(rep("Single-Family", 4), rep("Multifamily", 4)))
+
+ggplot(Annual) +
+  geom_point(aes(x = Year, y = Single_Family)) +
+  geom_point(aes(x = Year, y = Multifamily))
+
+ggplot(Annual) +
+  geom_col(aes(x = Year, y = Difference))
+
+ggplot(Annual_A) +
+  geom_col(aes(x = Year, y = Starts, fill = Type))
+```
+
+
+J. HousingEconomics Predictions. I believe these are the correct numbers. Freddie mac seems too high
+
+```{r}
+HE <- data.frame(Year = c(2015:2021),
+                 Single = c(713, 785, 852, 873, 869, 902, 917),
+                 Multi = c(394, 393, 356, 377, 374, 384, 399))
+HE %>% mutate(Single_Percent = Single / (Single + Multi))
+
+HE_A <- data.frame(Year = c(rep(HE$Year, 2)),
+                   Type = c(rep("Single-Family", 7), rep("Multifamily", 7)),
+                   Houses = c(HE$Single, HE$Multi))
+
+ggplot(HE_A) +
+  geom_col(aes(x = Year, y = Houses, fill = Type)) +
+  ggtitle("Forecasted Housing Starts") +
+  ylab("Housing Starts (Thousands)") +
+  labs(caption = "Source: HousingEconomics") +
+  scale_y_continuous(limits = c(0, 1350),
+                     breaks = c(seq(from = 0, to = 1250, by = 250))) +
+  scale_x_continuous(breaks = c(2015:2021)) +
+  scale_fill_manual(values = c("#f36e21", "#005581")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 17,
+                                    face = "bold",
+                                    color = "#005581",
+                                    hjust = .2),
+        axis.text.x = element_text(size = 17,
+                                   face = "bold"),
+        plot.caption = element_text(size = 17, 
+                                    hjust = -.25,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 15,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        legend.key.size = unit(.6, "cm"),
+        legend.text = element_text(size = 17),
+        legend.position = "bottom",
+        legend.spacing.x = unit(.5, "cm"),
+        )
+
+# ggsave("Graphs/HE_Forecasted_Housing_Starts.png", dpi = 1000)
+```
+
+
+
+K. 30 Year PMMS (Primary Mortgage Market Survey)
+
+```{r}
+# Quarterly average of monthly interest rates (not seasonally-adjusted); reported as an annual rate
+PMMS <- data.frame(Rate = c(4.3, 4.5, 4.6, 4.8,
+                            4.4, 4.0, 3.7, 3.7,
+                            3.8, 3.8, 3.8, 3.8,
+                            3.8, 3.8, 3.8, 3.9),
+                   Quarter = c("'18 Q1", "'18 Q2", "'18 Q3", "'18 Q4",
+                               "'19 Q1", "'19 Q2", "'19 Q3", "'19 Q4",
+                               "'20 Q1", "'20 Q2", "'20 Q3", "'20 Q4",
+                               "'21 Q1", "'21 Q2", "'21 Q3", "'21 Q4"))
+
+PMMS <- PMMS %>% mutate(Rate = Rate / 100)
+
+ggplot(PMMS) +
+  geom_line(aes(x = Quarter, y = Rate, group = 1),
+            color = "#005581",
+            size = 2.5) +
+  geom_point(aes(x = Quarter, y = Rate),
+             color = "#f36e21",
+             size = 4) +
+  ggtitle("30-Year PMMS Interest Rates") +
+  labs(caption = "Source: Freddie Mac") +
+  scale_y_continuous(breaks = c(seq(from = .037, to = .049, by = .002)),
+                     labels = scales::percent_format(accuracy = .1),
+                     limits = c(.0365, .049)) +
+  scale_x_discrete(labels = c("'18 Q1", "'19 Q1", "'20 Q1", "'21 Q1", "'21 Q4"),
+                   breaks = c("'18 Q1", "'19 Q1", "'20 Q1", "'21 Q1", "'21 Q4")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 16,
+                                   face = "bold"),
+                                   # angle = 50,
+                                   # vjust = 1.1),
+                                   # hjust = 1),
+        plot.caption = element_text(size = 16, 
+                                    hjust = -.15,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold"),
+        legend.title = element_text(size = 18,
+                                    face = "bold"),
+        legend.spacing.x = unit(.5, "cm"),
+        legend.key.size = unit(.5, "cm"),
+        legend.position = "none"
+        )
+
+# ggsave("Graphs/FM_PMMS.png", dpi = 1000)
+```
+
+
+
+Came from US Bureau of labor statistics
+```{r}
+# OSB <- read.csv("WPU09220124.csv")
+# OSB <- OSB %>% mutate(date = ymd(DATE))
+# 
+# ggplot(OSB) +
+#   geom_line(aes(x = date, 
+#                 y =  WPU09220124, 
+#                 group = 1),
+#             color = "#005581",
+#             size = 2) +
+#   ggtitle("Figure 3: Producer Price Index For OSB,\n Waferboard, Pulp, Paper") +
+#   labs(caption = "Source: U.S. Bureau of Labor Statistics") +
+#   scale_x_date(date_breaks = "2 years", 
+#                date_labels = "%Y") +
+#   scale_y_continuous(breaks = seq(100, 300, 50),
+#                      limits = c(100, 300)) +
+#   theme_economist_white() +
+#   theme(plot.title = element_text(size = 22, 
+#                                   hjust = .5, 
+#                                   face = "bold",
+#                                   color = "#005581"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text.x = element_text(size = 16,
+#                                    face = "bold"),
+#         plot.caption = element_text(size = 16, 
+#                                     hjust = -.2,
+#                                     face = "italic"),
+#         axis.text.y = element_text(size = 18,
+#                                    face = "bold"),
+#         legend.title = element_text(size = 18,
+#                                     face = "bold"),
+#         legend.spacing.x = unit(.5, "cm"),
+#         legend.key.size = unit(.5, "cm"),
+#         legend.position = "none"
+#         )
+
+# ggsave("Graphs/PPI_OSB.png", dpi = 1000)
+```
+
+
+```{r}
+# Wood_Product <- readxl::read_excel("Wood_Product_Manufact.xlsx")
+# Wood_Product <- Wood_Product[10:21,]
+# colnames(Wood_Product) <- Wood_Product[1,]
+# Wood_Product <- Wood_Product[-1,]
+# 
+# Wood_Product_Date <- vector(length = 11 * 12)
+# value <- c(length = 11 * 12)
+# k <- 1
+# 
+# for(i in 1:11) {
+#   for(j in 2:13) {
+#     value[k] <- Wood_Product[[i,j]]
+#     k <- k + 1
+#   }
+# }
+# # value
+# value <- as.numeric(value)
+# 
+# Wood_Product_Date <- rep(as.Date('2009-01-01'), 132)
+# 
+# for(i in 2:132) {
+#   month(Wood_Product_Date[i]) <- month(Wood_Product_Date[i-1]) + 1
+#   year(Wood_Product_Date[i:132]) <- year(Wood_Product_Date[i])
+# }
+# Wood_Product_Date
+# 
+# Wood_Product <- data.frame(Date = Wood_Product_Date,
+#                            PPI = value)
+# 
+# ggplot(Wood_Product) +
+#   geom_line(aes(x = Date, 
+#                 y = PPI, 
+#                 group = 1),
+#             color = "#005581",
+#             size = 2) +
+#   ggtitle("Figure 4: PPI For Wood Product Manufacturing") +
+#   labs(caption = "Source: U.S. Bureau of Labor Statistics") +
+#   scale_x_date(date_breaks = "2 years", 
+#                date_labels = "%Y") +
+#   theme_economist_white() +
+#   theme(plot.title = element_text(size = 20, 
+#                                   hjust = .5, 
+#                                   face = "bold",
+#                                   color = "#005581"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text.x = element_text(size = 16,
+#                                    face = "bold"),
+#         plot.caption = element_text(size = 16, 
+#                                     hjust = -.2,
+#                                     face = "italic"),
+#         axis.text.y = element_text(size = 18,
+#                                    face = "bold"),
+#         legend.title = element_text(size = 18,
+#                                     face = "bold"),
+#         legend.spacing.x = unit(.5, "cm"),
+#         legend.key.size = unit(.5, "cm"),
+#         legend.position = "none"
+#         )
+# 
+# ggsave("Graphs/PPI_Lumber.png", dpi = 1000)
+
+```
+
+
+Manufacturing stuff Adom sent me
+
+```{r}
+Manufacture <- data.frame(Year = c(rep("2017", 3), rep("2018", 3)),
+                          Type = rep(c("SA", "Siding", "OSB"), 2),
+                          Amount = c(680, 1760, 4895, 750, 2015, 4515))
+
+ggplot(Manufacture) +
+  geom_col(aes(x = Year, y = Amount, fill = Type))
+
+ggplot(Manufacture) +
+  geom_line(aes(x = Year, y = Amount, color = Type, group = Type), size = 2)
+
+Manufacture$Type <- factor(Manufacture$Type, levels = c("OSB", "Siding", "SA"))
+
+ggplot(Manufacture) +
+  geom_col(aes(x = Year, 
+               y = Amount, 
+               fill = Type), 
+           position = "dodge",
+           width = .8) +
+  ggtitle("Figure 14: Yearly Segment Manufacturing Amounts") +
+  ylab("Units Manufactured") +
+  labs(caption = "Source: LPX") +
+  scale_y_continuous(limits = c(0, 5000), 
+                    breaks = c(seq(from = 0, to = 5000, by = 1000))) +
+  scale_fill_manual(values = c("#005581", "#f36e21", "#a3039c")) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 19, 
+                                  hjust = 1, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 17,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.text.x = element_text(size = 16,
+                                   face = "bold"),
+        plot.caption = element_text(size = 16, 
+                                    hjust = -.15,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 16,
+                                   face = "bold"),
+        legend.title = element_blank(),
+        # legend.spacing.x = unit(.5, "cm"),
+        # legend.spacing.y = unit(.6, "cm"),
+        # legend.key.size = unit(.6, "cm"),
+        legend.position = c(.85,.7),
+        # legend.direction = "vertical",
+        legend.text = element_text(size = 17),
+        legend.background = element_rect(fill = "white")
+        )
+
+# ggsave("Graphs/Manufacture_Amounts.png", dpi = 1000)
+
+```
+
+
+
+```{r}
+Export <- data.frame(PPI = c(100.4, 102.6, 103.8,	104.2, 104.4,	104.6, 104.1,	103.4, 102.7,	101.5, 101.8,	101.5, 
+                             102.5, 103.2,	100.8, 100.4, 99.3,	97.8,	97.3,	96.3,	95.8,	94.8,	94.1,	93.8), 
+                     Date = c(glue("1.{1:12}.18"), glue("1.{1:12}.19")))
+
+Export <- Export %>% mutate(Date = dmy(Date))
+
+ggplot(Export) +
+  geom_line(aes(x = Date, 
+                y =  PPI, 
+                group = 1),
+            color = "#005581",
+            size = 2) +
+  ggtitle("Figure 15: Monthly Export Price Index\nWood Product Manufacturing") +
+  ylab("Price Index") +
+  labs(caption = "Source: U.S. Bureau of Labor Statistics") +
+  scale_x_date(date_breaks = "4 months", 
+               date_labels = "%m-%Y") +
+  scale_y_continuous(limits = c(93,105),
+                   breaks = c(seq(93, 105, 3))) +
+  theme_economist_white() +
+  theme(plot.title = element_text(size = 22, 
+                                  hjust = .5, 
+                                  face = "bold",
+                                  color = "#005581"),
+        axis.title.y = element_text(size = 18,
+                                    face = "bold",
+                                    color = "#005581"),
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(size = 16,
+                                   face = "bold"),
+        plot.caption = element_text(size = 16, 
+                                    hjust = -.3,
+                                    face = "italic"),
+        axis.text.y = element_text(size = 18,
+                                   face = "bold")
+        )
+
+# ggsave("Graphs/Export_Wood.png", dpi = 1000)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Historical stock price, retrieved from yahoo finance
+
+```{r}
+# lpx <- read.csv("lpx.csv")
+# lpx <- lpx %>% mutate(Date = ymd(Date))
+# 
+# ggplot(lpx) + 
+#   geom_line(aes(x = Date, y = Close, group = 1),
+#             color = "#005581",
+#             size = 2) +
+#   ggtitle("LPX Stock Price") +
+#   labs(caption = "Source: Yahoo Finance") +
+#   scale_x_date(date_breaks = "1 year", 
+#                date_labels = "%Y") +
+#   scale_y_continuous(breaks = seq(15, 35, 5),
+#                      limits = c(14, 35),
+#                      labels = scales::dollar) +
+#   theme_economist_white() +
+#   theme(plot.title = element_text(size = 25, 
+#                                   hjust = .5, 
+#                                   face = "bold",
+#                                   color = "#005581"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text.x = element_text(size = 18,
+#                                    face = "bold"),
+#         plot.caption = element_text(size = 18, 
+#                                     hjust = -.1,
+#                                     face = "italic"),
+#         axis.text.y = element_text(size = 18,
+#                                    face = "bold")
+#         )
+
+# ggsave("Present_Stock.png", dpi = 1000)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
